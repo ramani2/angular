@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script src="js/main.js"></script>
+</head>
+    <body ng-app="myShoppingList">
+        <div ng-controller="myCtrl">
+            <ul>
+                <li ng-repeat="product in products">
+                    <span ng-bind="product"></span>
+                    <span ng-click="removeItem($index)" style="cursor:pointer">&times;</span>
+                </li>
+            </ul>
+            <div ng-include="'tpl/temp_1.html'"></div>
+            <div ng-click="customFn()">Custom Fn</div>
+        </div>                
+    </body>
+</html>

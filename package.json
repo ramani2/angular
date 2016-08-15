@@ -1,0 +1,11 @@
+{
+  "name": "angularapp",
+  "version": "0.0.1",
+  "description": "Angular App",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

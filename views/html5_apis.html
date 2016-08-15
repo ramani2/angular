@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>{{title}}</title>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
+</head>
+<body  ng-app="myApp">
+
+	<p><a href="#/">Geolocation</a></p>
+	<p><a href="#web_worker">Web Workers</a></p>
+    <p><a href="#event_source">Server-Sent Events</a></p>
+
+	<div ng-view></div>
+    
+    <script>
+		var myApp   =   angular.module('myApp', ['ngRoute']);
+		myApp.config(function($routeProvider) {
+			$routeProvider
+			.when('/', {
+				templateUrl: 'tpl/geolocation.html',
+				controller: 'GeoLocation'
+			})
+			.when('/web_worker', {
+				templateUrl: 'tpl/web_worker.html',
+				controller: 'WebWorker'
+			})
+			.when('/event_source', {
+				templateUrl: 'tpl/event_source.html',
+				controller: 'EventSource'
+			});
+		});
+		
+		myApp.controller('GeoLocation', function($scope, $window, $document) {
+		
+			$scope.x		=	angular.element($document[0].getElementById("demo"));
+			
+			$scope.getLocation	=	function() 
+			{
+				if($window.navigator.geolocation) {
+					$window.navigator.geolocation.getCurrentPosition($scope.showPosition, $scope.showError);
+				} else {
+					$scope.x	.html("Geolocation is not supported by this browser.");
+				}
+			}
+			
+			$scope.showPosition	=	function(position) 
+			{
+				$scope.x	.html("<p>Latitude: " + position.coords.latitude + "</p><p>Longitude: " + position.coords.longitude + "</p>");
+				
+				var latlon = position.coords.latitude + "," + position.coords.longitude;
+				var img_url = "http://maps.googleapis.com/maps/api/staticmap?center="+latlon+"&zoom=14&size=400x300&sensor=false";
+				$scope.x	.append("<img src='"+img_url+"' style='float:left'/>");
+			}
+			
+			$scope.showError		=	function(error) 
+			{
+				switch(error.code) 
+				{
+					case error.PERMISSION_DENIED:
+						$scope.x	.html("User denied the request for Geolocation.");
+						break;
+					case error.POSITION_UNAVAILABLE:
+						$scope.x	.html("Location information is unavailable.");
+						break;
+					case error.TIMEOUT:
+						$scope.x	.html("The request to get user location timed out.");
+						break;
+					case error.UNKNOWN_ERROR:
+						$scope.x	.html("An unknown error occurred.");
+						break;
+				}
+			}
+		});
+		
+		myApp.controller('WebWorker', function($scope, $window, $document) {
+			
+			$scope.x		=	angular.element($document[0].getElementById("demo_worker"));
+			
+			$scope.w 	=	undefined;
+			
+			if (angular.isUndefined($scope.w)) 
+			{
+				$scope.w		=	new $window.Worker("js/workers.js");
+			}
+			
+			$scope.w.onmessage = function(event){
+				$document[0].getElementById("demo_worker").innerHTML	=	event.data;
+			};
+			
+			$scope.$on('$locationChangeStart', function(event) {
+				console.log('location changed');
+				/*var answer = confirm("Are you sure you want to leave this page?")
+				if (!answer) {
+					event.preventDefault();
+				}*/
+				
+				if(angular.isDefined($scope.w))
+				{
+					$scope.w.terminate();
+					$scope.w		=	undefined;
+				}
+			});
+		});
+		
+		myApp.controller('EventSource', function($scope, $window, $document) {
+			
+			$scope.x		=	angular.element($document[0].getElementById('result'));
+			
+			if (angular.isDefined($window.EventSource)) 
+			{
+				$scope.source	=	new $window.EventSource("/event_source");
+				
+				$scope.source.onmessage	=	function(event) {
+					$scope.x	.append(event.data + "<br />");
+				}
+			}
+			else
+			{
+				console.error('Sorry, your browser does not support server-sent events');
+			}
+		});
+	</script>
+</body>
+</html>
